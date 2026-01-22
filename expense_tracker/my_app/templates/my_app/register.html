@@ -1,0 +1,154 @@
+{% extends 'my_app/base.html' %}
+{% load static %}
+
+{% block title %}Rejestracja - FINEance{% endblock %}
+
+{% block content %}
+
+<style>
+    .register-wrapper {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--bg-color);
+        padding: 20px;
+    }
+
+    .register-card {
+        background-color: #fff;
+        width: 100%;
+        max-width: 500px;
+        border-radius: 25px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .register-header-bar {
+        height: 10px;
+        background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+    }
+
+    .register-title {
+        text-align: center;
+        font-weight: 800;
+        /* WYMUSZAMY CZARNY KOLOR - naprawa zlewania się z tłem */
+        color: #1a1a1a !important;
+        margin-bottom: 25px;
+        /* Odstęp od paska */
+        margin-top: 15px; 
+        font-size: 1.8rem;
+    }
+
+    .register-card input {
+        border-radius: 12px;
+        padding: 12px 15px;
+        background-color: #f3f4f6;
+        border: 2px solid transparent;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        width: 100%;
+        display: block;
+        /* Ciemny tekst w polach */
+        color: #333; 
+    }
+
+    .register-card input:focus {
+        background-color: #fff;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
+        outline: none;
+        color: #333;
+    }
+
+    .register-card label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #555;
+        margin-bottom: 5px;
+        display: block;
+        margin-top: 15px;
+    }
+
+    .helptext {
+        font-size: 0.75rem;
+        color: #888;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .btn-register-custom {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        background-color: var(--primary-color);
+        border: none;
+        color: white;
+        margin-top: 30px;
+        transition: transform 0.2s;
+    }
+    
+    .btn-register-custom:hover {
+        background-color: var(--accent-color);
+        transform: translateY(-2px);
+    }
+
+    .register-footer {
+        text-align: center;
+        margin-top: 25px;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        color: #dc3545;
+        font-size: 0.85rem;
+    }
+</style>
+
+<div class="register-wrapper">
+    <div class="register-card">
+        <div class="register-header-bar"></div>
+
+        <h2 class="register-title">Utwórz konto</h2>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="mt-1">{{ field.errors }}</div>
+                    {% endif %}
+                    {% if field.help_text %}
+                        <span class="helptext">{{ field.help_text|safe }}</span>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary btn-register-custom">
+                Zarejestruj się
+            </button>
+        </form>
+
+        <div class="register-footer">
+            Masz już konto? 
+            <a href="{% url 'login' %}" class="fw-bold text-decoration-none" style="color: var(--primary-color);">Zaloguj się</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

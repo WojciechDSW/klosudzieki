@@ -1,0 +1,142 @@
+{% extends 'my_app/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - FINEance App{% endblock %}
+
+{% block content %}
+    <h2 class="mb-4">Dashboard</h2>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+        <div class="col">
+            <div class="card h-100 card-accent-primary">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="card-title">Miesięczny Budżet</h5>
+                        <p class="card-text fs-2 fw-bold">{{ monthly_budget|floatformat:2 }} PLN</p>
+                    </div>
+                    <a href="{% url 'set_budget' %}" class="btn btn-light mt-3">Ustaw/Zmień Budżet</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100 card-accent-green">
+                <div class="card-body d-flex flex-column">
+                    <div>
+                        <h5 class="card-title">Wydatki w {{ current_month_name|capfirst }}</h5>
+                        <p class="card-text fs-2 fw-bold">{{ total_expenses_this_month|floatformat:2 }} PLN</p>
+                    </div>
+                    <hr class="my-3" style="border-color: rgba(255, 255, 255, 0.15);">
+                    <div class="mt-auto">
+                        <h6 class="card-subtitle" style="color: var(--text-secondary);">Wydatki w {{ last_month_name|capfirst }}</h6>
+                        <p class="card-text fs-5">{{ total_expenses_last_month|floatformat:2 }} PLN</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card h-100 card-accent-grey">
+                <div class="card-body text-center d-flex flex-column justify-content-between">
+                    <h5 class="card-title">Wykorzystanie Budżetu</h5>
+                    <div style="position: relative; max-width: 180px; margin: 1rem auto;">
+                        <canvas id="budgetDoughnutChart"></canvas>
+                    </div>
+                    <p class="card-text mt-2">Pozostało: <strong class="fs-5">{{ remaining_budget|floatformat:2 }} PLN</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="mt-5 mb-3">Ostatnie wydatki</h4>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Tytuł</th>
+                    <th scope="col">Kwota</th>
+                    <th scope="col">Kategoria</th>
+                    <th scope="col">Data</th>
+                    <th scope="col" class="text-end">Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in recent_expenses %}
+                <tr>
+                    <td class="align-middle">{{ expense.title }}</td>
+                    <td class="align-middle">{{ expense.amount|floatformat:2 }} PLN</td>
+                    <td class="align-middle">{{ expense.category.name|default:"Brak" }}</td>
+                    <td class="align-middle">{{ expense.date|date:"Y-m-d H:i" }}</td>
+                    <td class="text-end">
+                        <a href="{% url 'edit_expense' expense.id %}" class="btn btn-sm btn-secondary">Edytuj</a>
+                        <a href="{% url 'delete_expense' expense.id %}" class="btn btn-sm btn-danger">Usuń</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-5">Brak wydatków do wyświetlenia. Dodaj pierwszy!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'add_expense' %}" class="btn btn-primary btn-add-dashboard">Dodaj nowy wydatek</a>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('budgetDoughnutChart');
+    if (ctx) {
+        const totalExpenses = parseFloat("{{ total_expenses_this_month|stringformat:'.2f'|default:'0' }}".replace(",", "."));
+        const budget = parseFloat("{{ monthly_budget|stringformat:'.2f'|default:'0' }}".replace(",", "."));
+        
+        let usedAmount = totalExpenses;
+        let remainingAmount = budget - totalExpenses;
+        
+        if (remainingAmount < 0) {
+            remainingAmount = 0;
+        }
+
+        if (budget <= 0 && usedAmount <= 0) {
+            usedAmount = 0;
+            remainingAmount = 1; 
+        }
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Wydatki', 'Pozostało'],
+                datasets: [{
+                    data: [usedAmount, remainingAmount],
+                    backgroundColor: [ '#EF4444', '#10B981' ],
+                    borderColor: '#1F2937',
+                    borderWidth: 5,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '80%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: (budget > 0 || usedAmount > 0),
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': ' + context.parsed.toFixed(2) + ' PLN';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+

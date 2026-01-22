@@ -1,0 +1,150 @@
+{% extends 'my_app/base.html' %}
+{% load static %}
+
+{% block title %}Raporty - FINEance App{% endblock %}
+
+{% block content %}
+    <h2 class="mb-4">Raporty i Analizy</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Filtruj i Eksportuj</h5>
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="start_date" class="form-label">Data od</label>
+                    <input type="text" name="start_date" class="form-control flatpickr-date" value="{{ start_date|default:'' }}" placeholder="RRRR-MM-DD">
+                </div>
+                <div class="col-md-3">
+                    <label for="end_date" class="form-label">Data do</label>
+                    <input type="text" name="end_date" class="form-control flatpickr-date" value="{{ end_date|default:'' }}" placeholder="RRRR-MM-DD">
+                </div>
+                <div class="col-md-3">
+                    <label for="category" class="form-label">Kategoria</label>
+                    <select name="category" class="form-select">
+                        <option value="">Wszystkie</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if category.id == selected_category %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">Filtruj</button>
+                    
+                    <a href="{% url 'export_expenses_csv' %}" class="btn btn-success" title="Pobierz dane do Excela">
+                        <i class="bi bi-file-earmark-spreadsheet"></i> CSV
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tabela Wydatków</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Tytuł</th>
+                                    <th>Kwota</th>
+                                    <th>Kategoria</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for expense in expenses %}
+                                <tr>
+                                    <td class="align-middle">{{ expense.title }}</td>
+                                    <td class="align-middle">{{ expense.amount|floatformat:2 }} PLN</td>
+                                    <td class="align-middle">{{ expense.category.name|default:"Brak" }}</td>
+                                    <td class="align-middle">{{ expense.date|date:"Y-m-d" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5">Brak wydatków spełniających kryteria.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Podsumowanie</h5>
+                    <div class="text-center my-4">
+                        <p class="text-muted mb-1">Suma wydatków w okresie</p>
+                        <p class="fs-2 fw-bold">{{ total_expenses|floatformat:2 }} PLN</p>
+                    </div>
+                    <canvas id="categoryChart" data-summary='{{ category_summary_json|safe }}'></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('categoryChart');
+    if (ctx && ctx.dataset.summary) {
+        try {
+            const summaryData = JSON.parse(ctx.dataset.summary);
+            
+            const labels = summaryData.map(item => item.category__name || "Brak kategorii");
+            const data = summaryData.map(item => item.total);
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Wydatki wg kategorii',
+                        data: data,
+                        backgroundColor: [
+                            '#4F46E5', '#10B981', '#EF4444', '#F59E0B', 
+                            '#3B82F6', '#6366F1', '#EC4899', '#8B5CF6'
+                        ],
+                        borderColor: 'var(--secondary-bg-color)',
+                        borderWidth: 3,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: 'var(--text-secondary)'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.raw !== null) {
+                                        label += parseFloat(context.raw).toFixed(2) + ' PLN';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error("Błąd parsowania danych dla wykresu:", e);
+        }
+    }
+});
+</script>
+{% endblock %}

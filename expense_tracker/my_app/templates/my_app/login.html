@@ -1,0 +1,148 @@
+{% extends 'my_app/base.html' %}
+{% load static %}
+
+{% block title %}Zaloguj się - FINEance{% endblock %}
+
+{% block content %}
+
+<style>
+    /* --- UPROSZCZONE STYLE DLA LOGOWANIA --- */
+    
+    .login-wrapper {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--bg-color);
+        padding: 15px;
+    }
+
+    .login-card {
+        background-color: #fff;
+        width: 100%;
+        max-width: 450px;
+        border-radius: 25px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-header-bar {
+        height: 10px;
+        background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+    }
+
+    .login-title {
+        text-align: center;
+        font-weight: 800;
+        /* WYMUSZAMY CZARNY KOLOR, żeby nie zlewał się z tłem */
+        color: #1a1a1a !important; 
+        margin-bottom: 30px;
+        /* Dodajemy odstęp od górnego paska */
+        margin-top: 15px; 
+        font-size: 1.8rem;
+    }
+
+    .custom-input {
+        border-radius: 12px;
+        padding: 15px;
+        background-color: #f3f4f6;
+        border: 2px solid transparent;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        /* Wymuszamy ciemny tekst w polach formularza */
+        color: #333; 
+    }
+
+    .custom-input:focus {
+        background-color: #fff;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
+        color: #333;
+    }
+
+    .btn-login-custom {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        background-color: var(--primary-color);
+        border: none;
+        color: white;
+        margin-top: 10px;
+        transition: transform 0.2s;
+    }
+    
+    .btn-login-custom:hover {
+        background-color: var(--accent-color);
+        transform: translateY(-2px);
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 25px;
+        font-size: 0.9rem;
+        color: #666;
+    }
+</style>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header-bar"></div>
+
+        <h2 class="login-title">Zaloguj się</h2>
+
+        {% if form.errors %}
+            <div class="alert alert-danger text-center small py-2 mb-4">
+                Nieprawidłowa nazwa użytkownika lub hasło.
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div>
+                <input type="{{ form.username.field.widget.input_type }}" 
+                       name="{{ form.username.name }}" 
+                       class="form-control custom-input" 
+                       placeholder="Nazwa użytkownika" 
+                       required 
+                       id="{{ form.username.id_for_label }}">
+            </div>
+
+            <div>
+                <input type="{{ form.password.field.widget.input_type }}" 
+                       name="{{ form.password.name }}" 
+                       class="form-control custom-input" 
+                       placeholder="Hasło" 
+                       required 
+                       id="{{ form.password.id_for_label }}">
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4 small">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                    <label class="form-check-label text-muted" for="rememberMe">Zapamiętaj mnie</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-login-custom">
+                Zaloguj się
+            </button>
+        </form>
+
+        <div class="login-footer">
+            Nie masz jeszcze konta? 
+            <a href="{% url 'register' %}" class="fw-bold text-decoration-none" style="color: var(--primary-color);">Zarejestruj się</a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

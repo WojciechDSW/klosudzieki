@@ -1,0 +1,29 @@
+{% extends 'my_app/base.html' %}
+{% load widget_tweaks %} {# <--- Dodaj tę linię na górze #}
+
+{% block title %}Ustaw Budżet Miesięczny{% endblock %}
+
+{% block content %}
+    <h2 class="mb-4">Ustaw/Zmień swój miesięczny budżet</h2>
+    <form method="post">
+        {% csrf_token %}
+
+        {# Iteruj przez pola formularza i dodaj klasy Bootstrapa #}
+        {% for field in form %}
+            <div class="mb-3"> {# Margines na dole dla każdego pola #}
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {# Poprawiona linia: Używamy add_class z widget_tweaks #}
+                {{ field|add_class:"form-control" }} 
+                {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                {% endif %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-success mt-3 me-2">Zapisz Budżet</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary mt-3">Anuluj</a>
+    </form>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'my_app/base.html' %}
+
+{% block title %}Potwierdź usunięcie - FINEance App{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow border-danger" style="max-width: 600px; margin: auto;">
+        <div class="card-header bg-danger text-white text-center">
+            <h4 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Potwierdzenie usunięcia</h4>
+        </div>
+        <div class="card-body text-center p-5">
+            
+            <h5 class="mb-3">Czy na pewno chcesz usunąć {{ type|lower }}:</h5>
+            
+            <h2 class="fw-bold text-danger mb-4">{{ object }}</h2>
+
+            {% if type == 'Kategorię' and related_count > 0 %}
+                <div class="alert alert-danger text-start">
+                    <div class="d-flex">
+                        <i class="bi bi-cone-striped fs-1 me-3"></i>
+                        <div>
+                            <strong>UWAGA! Krytyczne ostrzeżenie:</strong><br>
+                            Ta kategoria jest przypisana do <strong>{{ related_count }}</strong> wydatków.<br>
+                            <span class="text-decoration-underline">Usunięcie tej kategorii spowoduje trwałe usunięcie tych wszystkich wydatków!</span>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-warning text-dark" style="color: #000000 !important; font-weight: bold;">
+                    {% if type == 'Kategorię' %}
+                        <i class="bi bi-info-circle"></i> Ta kategoria jest pusta. Jej usunięcie jest bezpieczne.
+                    {% else %}
+                        <i class="bi bi-exclamation-circle"></i> Tej operacji nie można cofnąć.
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <form method="post" class="mt-4 d-flex justify-content-center gap-3">
+                {% csrf_token %}
+                
+                {% if type == 'Kategorię' %}
+                    <a href="{% url 'category_list' %}" class="btn btn-secondary px-4">Anuluj</a>
+                {% else %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary px-4">Anuluj</a>
+                {% endif %}
+                
+                <button type="submit" class="btn btn-danger px-4">
+                    {% if related_count > 0 %}
+                        Tak, usuń wszystko ({{ related_count }} poz.)
+                    {% else %}
+                        Tak, usuń
+                    {% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
